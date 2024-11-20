@@ -19,13 +19,26 @@
 
 package javax.mail;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.URL;
-import java.util.*;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.StringTokenizer;
+import java.util.WeakHashMap;
 
 import org.apache.geronimo.mail.MailProviderRegistry;
 import org.apache.geronimo.osgi.locator.ProviderLocator;
@@ -54,8 +67,6 @@ public final class Session {
     private final Authenticator authenticator;
     private boolean debug;
     private PrintStream debugOut = System.out;
-
-    private static final Logger LOGGER = Logger.getLogger(Session.class.getName());
 
     private static final WeakHashMap providersByClassLoader = new WeakHashMap();
 
@@ -360,10 +371,6 @@ public final class Session {
         final Map addressMap = getAddressMap();
         final String protocolName = (String)addressMap.get(type);
         if (protocolName == null) {
-
-
-
-
             throw new NoSuchProviderException("No provider for address type " + type);
         }
         return getTransport(protocolName);
@@ -514,13 +521,8 @@ public final class Session {
         final ClassLoader cl = getClassLoader();
         Map addressMap = (Map)addressMapsByClassLoader.get(cl);
         if (addressMap == null) {
-            LOGGER.info("Address map not found, loading a new one");
             addressMap = loadAddressMap(cl);
-        } else {
-            LOGGER.info("Address map found, reusing");
         }
-
-        LOGGER.info("Address map content: \n" + addressMapToString(addressMap));
         return addressMap;
     }
 
@@ -755,7 +757,6 @@ public final class Session {
         final Properties addressMap = new Properties();
 
         // add this to the tracking map.
-        LOGGER.info("Loading new address map for classloader: " + cl);
         addressMapsByClassLoader.put(cl, addressMap);
 
         // NOTE:  We are reading these resources in reverse order of what's cited above.  This allows
@@ -767,15 +768,8 @@ public final class Session {
                 final URL url = (URL) e.nextElement();
                 final InputStream is = url.openStream();
                 try {
-                    LOGGER.info("Attempting to load default address map from: " + url);
                     // load as a property file
                     addressMap.load(is);
-                } catch (Throwable t) {
-                    final StringWriter sw = new StringWriter();
-                    final PrintWriter pw = new PrintWriter(sw);
-                    t.printStackTrace(pw);
-
-                    LOGGER.info("Error loading default address map from: " + url + ", " + sw);
                 } finally{
                     is.close();
                 }
@@ -791,17 +785,10 @@ public final class Session {
             final Enumeration e = cl.getResources("META-INF/javamail.address.map");
             while (e.hasMoreElements()) {
                 final URL url = (URL) e.nextElement();
-                LOGGER.info("Attempting to load address map from: " + url);
                 final InputStream is = url.openStream();
                 try {
                     // load as a property file
                     addressMap.load(is);
-                } catch (Throwable t) {
-                    final StringWriter sw = new StringWriter();
-                    final PrintWriter pw = new PrintWriter(sw);
-                    t.printStackTrace(pw);
-
-                    LOGGER.info("Error loading address map from: " + url + ", " + sw);
                 } finally{
                     is.close();
                 }
@@ -812,22 +799,16 @@ public final class Session {
             // ignore
         }
 
+
         try {
             File file = new File(System.getProperty("java.home"), "conf/javamail.address.map");
             if (!file.exists()) {
                 file = new File(System.getProperty("java.home"), "lib/javamail.address.map");
             }
             final InputStream is = new FileInputStream(file);
-            LOGGER.info("Attempting to load address map from: " + file);
             try {
                 // load as a property file
                 addressMap.load(is);
-            } catch (Throwable t) {
-                final StringWriter sw = new StringWriter();
-                final PrintWriter pw = new PrintWriter(sw);
-                t.printStackTrace(pw);
-
-                LOGGER.info("Error loading address map from: " + file + ", " + sw);
             } finally{
                 is.close();
             }
@@ -845,12 +826,6 @@ public final class Session {
                 try {
                     // load as a property file
                     addressMap.load(is);
-                } catch (Throwable t) {
-                    final StringWriter sw = new StringWriter();
-                    final PrintWriter pw = new PrintWriter(sw);
-                    t.printStackTrace(pw);
-
-                    LOGGER.info("Error loading address map from: " + url + ", " + sw);
                 } finally{
                     is.close();
                 }
@@ -861,24 +836,13 @@ public final class Session {
             // ignore
         }
 
-        LOGGER.info("Address map:\n" + addressMapToString(addressMap));
 
         // if unable to load anything, at least create the MimeMessage-smtp protocol mapping.
         if (addressMap.isEmpty()) {
-            LOGGER.info("Address map is empty, adding rfc822");
             addressMap.put("rfc822", "smtp");
         }
 
         return addressMap;
-    }
-
-    private static String addressMapToString(Map addressMap) {
-        final StringBuilder sb = new StringBuilder();
-        for (Object k : addressMap.keySet()) {
-            final Object v = addressMap.get(k);
-            sb.append(k).append(" => ").append(v).append("\n");
-        }
-        return sb.toString();
     }
 
     /**
