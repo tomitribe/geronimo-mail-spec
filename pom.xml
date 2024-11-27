@@ -34,7 +34,7 @@
     <artifactId>geronimo-mail_2.1_spec</artifactId>
     <packaging>bundle</packaging>
     <name>Apache Geronimo Jakarta Mail Spec 2.1</name>
-    <version>1.0.0-TT.3-SNAPSHOT</version>
+    <version>1.0.0-TT.3</version>
 
     <description>Jakarta Mail 2.1 API Specification</description>
 
@@ -64,7 +64,7 @@
         <connection>scm:git:git@github.com:tomitribe/geronimo-mail-spec.git</connection>
         <developerConnection>scm:git:git@github.com:tomitribe/geronimo-mail-spec.git</developerConnection>
         <url>scm:git:git@github.com:tomitribe/geronimo-mail-spec.git</url>
-        <tag>HEAD</tag>
+        <tag>geronimo-mail_2.1_spec-1.0.0-TT.3</tag>
     </scm>
     <dependencies>
         <dependency>
