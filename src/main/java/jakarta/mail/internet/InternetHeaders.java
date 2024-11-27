@@ -46,7 +46,7 @@ public class InternetHeaders {
         @Override
         public boolean add(final InternetHeader o) {
             if ("Received".equals(o.getName()) || "Return-Path".equals(o.getName())) {
-                super.add(o);
+                return super.add(o);
             }
             assertNoDuplicates(o);
             return super.add(o);
